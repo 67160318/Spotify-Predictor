@@ -1,40 +1,23 @@
-import streamlit as st
-import pandas as pd
-import joblib
-import numpy as np
-
-# โหลดโมเดล
-try:
-    model = joblib.load('best_model.pkl')
-    scaler = joblib.load('scaler.pkl')
-except:
-    st.error("ไม่พบไฟล์โมเดล กรุณาตรวจสอบว่ามี best_model.pkl และ scaler.pkl ในโฟลเดอร์")
-
-st.title("🎵 Spotify Track Popularity Predictor")
-st.write("แอปนี้จะช่วยทำนายว่าเพลงของคุณจะฮิตแค่ไหน (คะแนนความนิยม 0-100) จากองค์ประกอบของเสียง!")
-
-# สร้างแถบเลื่อนปรับค่า (10 ตัวแปร)
-danceability = st.slider('ความสามารถในการเต้น (Danceability)', 0.0, 1.0, 0.5)
-energy = st.slider('พลังงานความคึกคัก (Energy)', 0.0, 1.0, 0.5)
-key = st.slider('คีย์เพลง (Key)', 0, 11, 5) # <-- เพิ่มตัวนี้เข้ามา
-loudness = st.slider('ความดังของเสียง (Loudness dB)', -60.0, 0.0, -5.0)
-speechiness = st.slider('สัดส่วนเสียงพูด (Speechiness)', 0.0, 1.0, 0.1)
-acousticness = st.slider('ความเป็นดนตรีอคูสติก (Acousticness)', 0.0, 1.0, 0.2)
-instrumentalness = st.slider('สัดส่วนดนตรีบรรเลง (Instrumentalness)', 0.0, 1.0, 0.0)
-liveness = st.slider('ความเป็นดนตรีสด (Liveness)', 0.0, 1.0, 0.1)
-valence = st.slider('อารมณ์บวกของเพลง (Valence)', 0.0, 1.0, 0.5)
-tempo = st.slider('จังหวะความเร็ว (Tempo BPM)', 50.0, 200.0, 120.0)
-
 if st.button('🔮 ทำนายความนิยม'):
-    # จัดเรียงข้อมูลให้ตรงกับตอนเทรนเป๊ะๆ
-    feature_names = ['danceability', 'energy', 'key', 'loudness', 'speechiness', 'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']
-    features = [[danceability, energy, key, loudness, speechiness, acousticness, instrumentalness, liveness, valence, tempo]]
+    # ลำดับนี้ต้องเป๊ะตามที่โมเดลเรียนรู้มา (เช็คจาก Error mismatch ก่อนหน้า)
+    # เราจะเรียงตามที่มาตรฐาน Spotify Dataset ส่วนใหญ่ใช้ครับ
+    feature_names = [
+        'danceability', 'energy', 'key', 'loudness', 'speechiness', 
+        'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo'
+    ]
     
-    # สร้างเป็น DataFrame เพื่อไม่ให้ชื่อคอลัมน์ตีกัน
+    # สร้างข้อมูล input ในรูปแบบ List
+    features = [[danceability, energy, key, loudness, speechiness, 
+                 acousticness, instrumentalness, liveness, valence, tempo]]
+    
+    # สร้าง DataFrame และบังคับลำดับคอลัมน์ให้ถูกต้อง
     input_df = pd.DataFrame(features, columns=feature_names)
     
-    # แปลงสเกลข้อมูลและทำนาย
-    scaled_features = scaler.transform(input_df)
-    prediction = model.predict(scaled_features)
-    
-    st.success(f'🎉 คะแนนความนิยมที่คาดเดา: {prediction[0]:.2f} / 100')
+    try:
+        # ใช้ scaler ตัวเดิมที่คุณอัปโหลดไว้
+        scaled_features = scaler.transform(input_df)
+        prediction = model.predict(scaled_features)
+        
+        st.success(f'🎉 คะแนนความนิยมที่คาดเดา: {prediction[0]:.2f} / 100')
+    except Exception as e:
+        st.error(f"เกิดข้อผิดพลาดในการคำนวณ: {e}")
