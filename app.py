@@ -4,16 +4,15 @@ import joblib
 import numpy as np
 import os
 
-# ต้องเป็นบรรทัดแรกสุดของ Streamlit commands
+# ต้องเป็นบรรทัดแรกสุด
 st.set_page_config(page_title="Spotify Predictor", page_icon="🎵")
 
 st.title("🎵 Spotify Track Popularity Predictor")
-st.write("แอปนี้จะช่วยทำนายว่าเพลงของคุณจะฮิตแค่ไหน (0-100) จากองค์ประกอบของเสียง!")
+st.write("แอปทำนายความนิยมเพลงจากองค์ประกอบของเสียง (9 Features)")
 
 # ฟังก์ชันโหลดโมเดล
 @st.cache_resource
 def load_models():
-    # เช็คว่ามีไฟล์อยู่ในโฟลเดอร์จริงไหม
     if os.path.exists('best_model.pkl') and os.path.exists('scaler.pkl'):
         m = joblib.load('best_model.pkl')
         s = joblib.load('scaler.pkl')
@@ -23,16 +22,15 @@ def load_models():
 model, scaler = load_models()
 
 if model is None or scaler is None:
-    st.error("❌ ไม่พบไฟล์โมเดล! ตรวจสอบว่าคุณอัปโหลดไฟล์ 'best_model.pkl' และ 'scaler.pkl' ไว้ในหน้าแรกของ GitHub หรือยัง")
+    st.error("❌ ไม่พบไฟล์โมเดลบน GitHub")
 else:
-    # สร้างแถบเลื่อนปรับค่า
     st.subheader("📊 ปรับค่าองค์ประกอบของเพลง")
     col1, col2 = st.columns(2)
 
     with col1:
         danceability = st.slider('Danceability', 0.0, 1.0, 0.5)
         energy = st.slider('Energy', 0.0, 1.0, 0.5)
-        key = st.slider('Key', 0, 11, 5)
+        # ตัด Key ออกจากตรงนี้
         loudness = st.slider('Loudness (dB)', -60.0, 0.0, -5.0)
         speechiness = st.slider('Speechiness', 0.0, 1.0, 0.1)
 
@@ -44,23 +42,24 @@ else:
         tempo = st.slider('Tempo (BPM)', 50.0, 200.0, 120.0)
 
     st.markdown("---")
-if st.button('🔮 ทำนายความนิยม'):
-        # เรายังคงไว้ 10 ตัวแปรเพื่อให้จำนวน (Count) ครบ 10 ตามที่โมเดลต้องการ
-        feature_names = ['danceability', 'energy', 'key', 'loudness', 'speechiness', 
-                         'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']
+    if st.button('🔮 ทำนายความนิยม'):
+        # ลำดับ 9 ตัวตามที่ Scaler และ Model ต้องการเป๊ะๆ
+        feature_names = [
+            'danceability', 'energy', 'loudness', 'speechiness', 
+            'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo'
+        ]
         
-        features = [[danceability, energy, key, loudness, speechiness, 
+        features = [[danceability, energy, loudness, speechiness, 
                      acousticness, instrumentalness, liveness, valence, tempo]]
         
         input_df = pd.DataFrame(features, columns=feature_names)
         
         try:
-            # ✨ จุดตายอยู่ตรงนี้ครับ: เติม .values เพื่อให้โมเดลรับแค่ตัวเลข ไม่เช็คชื่อคอลัมน์
-            scaled_features = scaler.transform(input_df.values) 
+            # ใช้ .values เพื่อป้องกันปัญหาชื่อคอลัมน์ไม่ตรง
+            scaled_features = scaler.transform(input_df.values)
             prediction = model.predict(scaled_features)
             
             st.balloons()
             st.success(f'### 🎉 คะแนนความนิยมที่คาดเดา: {prediction[0]:.2f} / 100')
-            
         except Exception as e:
             st.error(f"เกิดข้อผิดพลาดในการคำนวณ: {e}")
