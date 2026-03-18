@@ -44,18 +44,23 @@ else:
         tempo = st.slider('Tempo (BPM)', 50.0, 200.0, 120.0)
 
     st.markdown("---")
-    if st.button('🔮 ทำนายความนิยม'):
+if st.button('🔮 ทำนายความนิยม'):
+        # เรายังคงไว้ 10 ตัวแปรเพื่อให้จำนวน (Count) ครบ 10 ตามที่โมเดลต้องการ
         feature_names = ['danceability', 'energy', 'key', 'loudness', 'speechiness', 
                          'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo']
+        
         features = [[danceability, energy, key, loudness, speechiness, 
                      acousticness, instrumentalness, liveness, valence, tempo]]
         
         input_df = pd.DataFrame(features, columns=feature_names)
         
         try:
-            scaled_features = scaler.transform(input_df)
+            # ✨ จุดตายอยู่ตรงนี้ครับ: เติม .values เพื่อให้โมเดลรับแค่ตัวเลข ไม่เช็คชื่อคอลัมน์
+            scaled_features = scaler.transform(input_df.values) 
             prediction = model.predict(scaled_features)
+            
             st.balloons()
             st.success(f'### 🎉 คะแนนความนิยมที่คาดเดา: {prediction[0]:.2f} / 100')
+            
         except Exception as e:
             st.error(f"เกิดข้อผิดพลาดในการคำนวณ: {e}")
