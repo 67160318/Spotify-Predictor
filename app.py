@@ -98,7 +98,8 @@ if predict_btn:
                     
                     recommendations = df_songs.iloc[nearest_indices][['track_name', 'track_artist', 'track_popularity']]
                     recommendations.columns = ['Track Name', 'Artist', 'Actual Popularity']
-                    st.dataframe(recommendations, use_container_width=True, hide_index=True)
+                    recommendations = recommendations.reset_index(drop=True)
+                    st.dataframe(recommendations, use_container_width=True)
                 except KeyError:
                     st.warning("⚠️ โชว์คะแนนได้ปกติ แต่ไม่สามารถแนะนำเพลงได้ (ไฟล์ spotify_songs.csv ข้อมูลคอลัมน์ไม่ถูกต้อง)")
             else:
