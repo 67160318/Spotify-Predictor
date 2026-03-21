@@ -129,15 +129,14 @@ if predict_btn:
                     
                     recommendations = df_songs.iloc[nearest_indices][['track_name', 'track_artist', 'track_popularity']]
                     
-                    # ✨ หักดิบแก้บั๊ก LargeUtf8: ดึงมาเป็น List ธรรมดา แล้วสร้าง DataFrame ใหม่ทับไปเลย ✨
                     clean_recom = pd.DataFrame({
                         'Track Name': recommendations['track_name'].astype(str).tolist(),
                         'Artist': recommendations['track_artist'].astype(str).tolist(),
                         'Actual Popularity': recommendations['track_popularity'].tolist()
                     })
                     
-                    # โชว์ตารางตัวใหม่ที่สะอาด 100%
-                    st.dataframe(clean_recom, use_container_width=True)
+                    # ✨ ไม้ตายก้นหีบ: เปลี่ยนจาก st.dataframe เป็น st.table แทนเพื่อตัดปัญหาบั๊ก 100% ✨
+                    st.table(clean_recom)
                     
                 except KeyError:
                     st.warning("⚠️ โชว์คะแนนได้ปกติ แต่ไม่สามารถแนะนำเพลงได้ (ไฟล์ spotify_songs.csv ข้อมูลคอลัมน์ไม่ถูกต้อง)")
