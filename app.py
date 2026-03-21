@@ -4,7 +4,7 @@ import joblib
 import numpy as np
 import os
 
-# 1. ตั้งค่าหน้าเว็บแบบกว้าง (Wide Mode)
+# 1. ตั้งค่าหน้าเว็บแบบกว้าง
 st.set_page_config(page_title="Spotify Predictor Pro", layout="wide", page_icon="🎵")
 
 # ==========================================
@@ -13,15 +13,12 @@ st.set_page_config(page_title="Spotify Predictor Pro", layout="wide", page_icon=
 @st.cache_resource
 def load_assets():
     assets = {}
-    
-    # โหลด Scaler
     if os.path.exists('scaler.pkl'):
         assets['scaler'] = joblib.load('scaler.pkl')
     else:
         st.error("❌ ไม่พบไฟล์ scaler.pkl บน GitHub")
         st.stop()
 
-    # โหลดโมเดลทั้ง 4 ตัว
     model_names = ['linear_regression', 'decision_tree', 'random_forest', 'knn']
     assets['models'] = {}
     for name in model_names:
@@ -31,7 +28,6 @@ def load_assets():
         else:
             st.warning(f"⚠️ ไม่พบไฟล์โมเดล {filename}")
 
-    # โหลดข้อมูล CSV ดิบ
     if os.path.exists('spotify_songs.csv'):
         try:
             assets['df_raw'] = pd.read_csv('spotify_songs.csv', on_bad_lines='skip')
@@ -39,7 +35,6 @@ def load_assets():
             assets['df_raw'] = None
     else:
         assets['df_raw'] = None
-        
     return assets
 
 assets = load_assets()
@@ -56,17 +51,12 @@ if not assets['models']:
     st.sidebar.error("❌ ไม่พบไฟล์โมเดล กรุณาอัปโหลดลง GitHub")
     st.stop()
 
-# 1.1 เลือกโมเดล
-selected_model_name = st.sidebar.selectbox(
-    'Select Machine Learning Model',
-    list(assets['models'].keys())
-)
+selected_model_name = st.sidebar.selectbox('Select Machine Learning Model', list(assets['models'].keys()))
 selected_model = assets['models'][selected_model_name]
 
 st.sidebar.markdown("---")
 st.sidebar.subheader("Adjust Audio Features")
 
-# 1.2 แถบเลื่อนปรับค่า (9 Features)
 danceability = st.sidebar.slider('Danceability', 0.0, 1.0, 0.5)
 energy = st.sidebar.slider('Energy', 0.0, 1.0, 0.5)
 loudness = st.sidebar.slider('Loudness (dB)', -60.0, 0.0, -10.0)
@@ -77,24 +67,19 @@ liveness = st.sidebar.slider('Liveness', 0.0, 1.0, 0.1)
 valence = st.sidebar.slider('Valence', 0.0, 1.0, 0.5)
 tempo = st.sidebar.slider('Tempo (BPM)', 50.0, 200.0, 120.0)
 
-# ปุ่มทำนาย
 st.sidebar.markdown("---")
 predict_btn = st.sidebar.button('🔮 Predict & Recommend', type='primary')
 
-# ส่วนที่ 2: Main Area (แสดงผล)
 col_result, col_recommend = st.columns([1, 2])
 
 if predict_btn:
     feature_names = ['danceability', 'energy', 'loudness', 'speechiness', 'acousticness', 
                      'instrumentalness', 'liveness', 'valence', 'tempo']
-    
     input_features = [[danceability, energy, loudness, speechiness, acousticness, 
                       instrumentalness, liveness, valence, tempo]]
-    
     input_df = pd.DataFrame(input_features, columns=feature_names)
     
     try:
-        # Prediction
         input_scaled = assets['scaler'].transform(input_df.values)
         prediction = selected_model.predict(input_scaled)[0]
         predicted_popularity = max(0, min(100, prediction))
@@ -132,14 +117,27 @@ if predict_btn:
                     clean_recom = pd.DataFrame({
                         'Track Name': recommendations['track_name'].astype(str).tolist(),
                         'Artist': recommendations['track_artist'].astype(str).tolist(),
-                        'Actual Popularity': recommendations['track_popularity'].tolist()
+                        'Popularity': recommendations['track_popularity'].tolist()
                     })
                     
-                    # ✨ ไม้ตายก้นหีบ: เปลี่ยนจาก st.dataframe เป็น st.table แทนเพื่อตัดปัญหาบั๊ก 100% ✨
-                    st.table(clean_recom)
+                    # ✨ ไม้ตายระดับพระกาฬ: แปลงเป็น HTML ทะลวงข้ามระบบ Streamlit ไปเลย! ✨
+                    html_table = clean_recom.to_html(index=False, justify='center', border=0)
+                    
+                    # ใส่ CSS แต่งให้ตาราง HTML ดูสวยงามเข้ากับเว็บ
+                    st.markdown(f"""
+                    <style>
+                        .custom-table {{ width: 100%; border-collapse: collapse; font-family: sans-serif; }}
+                        .custom-table th {{ background-color: #f0f2f6; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; }}
+                        .custom-table td {{ padding: 10px; border-bottom: 1px solid #eee; }}
+                        .custom-table tr:hover {{ background-color: #f9f9f9; }}
+                    </style>
+                    <div class="custom-table">
+                        {html_table}
+                    </div>
+                    """, unsafe_allow_html=True)
                     
                 except KeyError:
-                    st.warning("⚠️ โชว์คะแนนได้ปกติ แต่ไม่สามารถแนะนำเพลงได้ (ไฟล์ spotify_songs.csv ข้อมูลคอลัมน์ไม่ถูกต้อง)")
+                    st.warning("⚠️ โชว์คะแนนได้ปกติ แต่ไม่สามารถแนะนำเพลงได้ (ไฟล์ข้อมูลไม่สมบูรณ์)")
             else:
                 st.warning("⚠️ ไม่พบไฟล์ spotify_songs.csv สำหรับดึงข้อมูลแนะนำเพลง")
 
