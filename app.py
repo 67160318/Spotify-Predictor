@@ -120,21 +120,11 @@ if predict_btn:
                         'Popularity': recommendations['track_popularity'].tolist()
                     })
                     
-                    # ✨ ไม้ตายระดับพระกาฬ: แปลงเป็น HTML ทะลวงข้ามระบบ Streamlit ไปเลย! ✨
+                    # ✨ บีบโค้ดเป็นบรรทัดเดียว ป้องกัน Streamlit มองเป็น Code Block ✨
                     html_table = clean_recom.to_html(index=False, justify='center', border=0)
+                    html_code = f"<style>.custom-table {{ width: 100%; border-collapse: collapse; font-family: sans-serif; }} .custom-table th {{ background-color: #f0f2f6; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; }} .custom-table td {{ padding: 10px; border-bottom: 1px solid #eee; }} .custom-table tr:hover {{ background-color: #f9f9f9; }}</style><div class='custom-table'>{html_table}</div>"
                     
-                    # ใส่ CSS แต่งให้ตาราง HTML ดูสวยงามเข้ากับเว็บ
-                    st.markdown(f"""
-                    <style>
-                        .custom-table {{ width: 100%; border-collapse: collapse; font-family: sans-serif; }}
-                        .custom-table th {{ background-color: #f0f2f6; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; }}
-                        .custom-table td {{ padding: 10px; border-bottom: 1px solid #eee; }}
-                        .custom-table tr:hover {{ background-color: #f9f9f9; }}
-                    </style>
-                    <div class="custom-table">
-                        {html_table}
-                    </div>
-                    """, unsafe_allow_html=True)
+                    st.markdown(html_code, unsafe_allow_html=True)
                     
                 except KeyError:
                     st.warning("⚠️ โชว์คะแนนได้ปกติ แต่ไม่สามารถแนะนำเพลงได้ (ไฟล์ข้อมูลไม่สมบูรณ์)")
