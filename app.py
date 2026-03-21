@@ -31,10 +31,9 @@ def load_assets():
         else:
             st.warning(f"⚠️ ไม่พบไฟล์โมเดล {filename}")
 
-    # โหลดข้อมูล CSV ดิบ (จำเป็นสำหรับระบบแนะนำเพลง)
+    # โหลดข้อมูล CSV ดิบ
     if os.path.exists('spotify_songs.csv'):
         try:
-            # โหลดข้อมูลแบบเผื่อเหนียว ป้องกันไฟล์พัง
             assets['df_raw'] = pd.read_csv('spotify_songs.csv', on_bad_lines='skip')
         except Exception:
             assets['df_raw'] = None
@@ -51,7 +50,6 @@ assets = load_assets()
 st.title("🎵 Spotify Track Popularity Pro Predictor")
 st.markdown("ทำนายความนิยมของเพลงจากองค์ประกอบของเสียง และค้นหาเพลงที่มีลักษณะใกล้เคียงกัน")
 
-# ส่วนที่ 1: Sidebar (Features & Settings)
 st.sidebar.header("🕹️ Features & Settings")
 
 if not assets['models']:
@@ -130,17 +128,16 @@ if predict_btn:
                     nearest_indices = np.argsort(distances)[:5]
                     
                     recommendations = df_songs.iloc[nearest_indices][['track_name', 'track_artist', 'track_popularity']]
-                    recommendations.columns = ['Track Name', 'Artist', 'Actual Popularity']
                     
-                    # ✨ แก้บั๊กข้อความ LargeUtf8 ตรงนี้ ✨
-                    recommendations['Track Name'] = recommendations['Track Name'].astype(str)
-                    recommendations['Artist'] = recommendations['Artist'].astype(str)
+                    # ✨ หักดิบแก้บั๊ก LargeUtf8: ดึงมาเป็น List ธรรมดา แล้วสร้าง DataFrame ใหม่ทับไปเลย ✨
+                    clean_recom = pd.DataFrame({
+                        'Track Name': recommendations['track_name'].astype(str).tolist(),
+                        'Artist': recommendations['track_artist'].astype(str).tolist(),
+                        'Actual Popularity': recommendations['track_popularity'].tolist()
+                    })
                     
-                    # รีเซ็ตเลขแถวให้สวยงาม (0, 1, 2, 3, 4)
-                    recommendations = recommendations.reset_index(drop=True)
-                    
-                    # โชว์ตาราง (เอา hide_index ออกเพื่อแก้บั๊กเวอร์ชันเก่า)
-                    st.dataframe(recommendations, use_container_width=True)
+                    # โชว์ตารางตัวใหม่ที่สะอาด 100%
+                    st.dataframe(clean_recom, use_container_width=True)
                     
                 except KeyError:
                     st.warning("⚠️ โชว์คะแนนได้ปกติ แต่ไม่สามารถแนะนำเพลงได้ (ไฟล์ spotify_songs.csv ข้อมูลคอลัมน์ไม่ถูกต้อง)")
