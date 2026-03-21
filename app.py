@@ -4,8 +4,77 @@ import joblib
 import numpy as np
 import os
 
-# 1. ตั้งค่าหน้าเว็บแบบกว้าง
-st.set_page_config(page_title="Spotify Predictor Pro", layout="wide", page_icon="🎵")
+# 1. ตั้งค่าหน้าเว็บแบบกว้างและใช้ Theme สีมืดเพื่อให้เฟี้ยว!
+st.set_page_config(page_title="Spotify Predictor Pro", layout="wide", page_icon="🎵", initial_sidebar_state="expanded")
+
+# --- CUSTOM CSS: แต่ง Theme ให้เฟี้ยว! ---
+st.markdown("""
+<style>
+    /* เปลี่ยนสีพื้นหลังหน้าเว็บและ Sidebar */
+    [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+        background-color: #121212; /* Spotify Dark */
+        color: #FFFFFF;
+    }
+    [data-testid="stSidebar"] {
+        background-color: #000000; /* Sidebar Darker */
+        border-right: 1px solid #282828;
+    }
+    
+    /* แต่งข้อความและหัวข้อ */
+    h1, h2, h3, .stMarkdown, .stText {
+        color: #FFFFFF !important;
+        font-family: 'Inter', sans-serif;
+    }
+    h1 {
+        text-shadow: 0 0 10px #1DB954; /* Glow Title */
+    }
+
+    /* แต่ง Slider และปุ่ม */
+    .stSlider > div > div > div > div {
+        background-color: #1DB954 !important; /* Spotify Green */
+    }
+    .stButton > button {
+        background-color: #1DB954 !important; /* Spotify Green */
+        color: #FFFFFF !important;
+        border-radius: 20px !important;
+        border: none !important;
+        font-weight: bold !important;
+        transition: transform 0.2s;
+    }
+    .stButton > button:hover {
+        transform: scale(1.05); /* Zoom Effect */
+        background-color: #1ED760 !important; /* Lighter Green */
+    }
+
+    /* แต่งตารางแนะนำเพลงแบบ HTML Bypass */
+    .custom-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+        background-color: #181818;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .custom-table th {
+        background-color: #282828;
+        padding: 15px;
+        text-align: left;
+        color: #B3B3B3;
+        font-weight: bold;
+        text-transform: uppercase;
+        font-size: 12px;
+        letter-spacing: 1px;
+    }
+    .custom-table td {
+        padding: 15px;
+        border-bottom: 1px solid #282828;
+        color: #FFFFFF;
+    }
+    .custom-table tr:hover {
+        background-color: #2A2A2A; /* Highlight Row */
+    }
+</style>
+""", unsafe_allow_html=True)
 
 # ==========================================
 # 2. ฟังก์ชันโหลดข้อมูลและโมเดล
@@ -42,10 +111,11 @@ assets = load_assets()
 # ==========================================
 # 3. หน้าตาหน้าเว็บ (UI)
 # ==========================================
-st.title("🎵 Spotify Track Popularity Pro Predictor")
-st.markdown("ทำนายความนิยมของเพลงจากองค์ประกอบของเสียง และค้นหาเพลงที่มีลักษณะใกล้เคียงกัน")
+# ใช้ st.markdown กับ CSS ที่เราแต่งไว้
+st.markdown("<h1>🎵 Spotify Track Popularity Pro Predictor</h1>", unsafe_allow_html=True)
+st.markdown("<p style='color: #B3B3B3;'>ทำนายความนิยมของเพลงจากองค์ประกอบของเสียง และค้นหาเพลงที่มีลักษณะใกล้เคียงกัน</p>", unsafe_allow_html=True)
 
-st.sidebar.header("🕹️ Features & Settings")
+st.sidebar.markdown("<h2 style='color: #1DB954;'>🕹️ Features & Settings</h2>", unsafe_allow_html=True)
 
 if not assets['models']:
     st.sidebar.error("❌ ไม่พบไฟล์โมเดล กรุณาอัปโหลดลง GitHub")
@@ -54,7 +124,7 @@ if not assets['models']:
 selected_model_name = st.sidebar.selectbox('Select Machine Learning Model', list(assets['models'].keys()))
 selected_model = assets['models'][selected_model_name]
 
-st.sidebar.markdown("---")
+st.sidebar.markdown("<hr style='border: 1px solid #282828;'>", unsafe_allow_html=True)
 st.sidebar.subheader("Adjust Audio Features")
 
 danceability = st.sidebar.slider('Danceability', 0.0, 1.0, 0.5)
@@ -67,7 +137,7 @@ liveness = st.sidebar.slider('Liveness', 0.0, 1.0, 0.1)
 valence = st.sidebar.slider('Valence', 0.0, 1.0, 0.5)
 tempo = st.sidebar.slider('Tempo (BPM)', 50.0, 200.0, 120.0)
 
-st.sidebar.markdown("---")
+st.sidebar.markdown("<hr style='border: 1px solid #282828;'>", unsafe_allow_html=True)
 predict_btn = st.sidebar.button('🔮 Predict & Recommend', type='primary')
 
 col_result, col_recommend = st.columns([1, 2])
@@ -85,23 +155,22 @@ if predict_btn:
         predicted_popularity = max(0, min(100, prediction))
         
         with col_result:
-            st.subheader("📊 Prediction Result")
+            st.markdown("<h3 style='border-bottom: 2px solid #1DB954; padding-bottom: 10px;'>📊 Prediction Result</h3>", unsafe_allow_html=True)
             st.balloons()
-            score_color = "#1DB954" if predicted_popularity > 70 else "#FFA500" if predicted_popularity > 40 else "#FF4B4B"
-            
+            # ใช้ CSS แต่งกล่องคะแนนให้เฟี้ยว!
             st.markdown(f"""
-            <div style="background-color: #f0f2f6; padding: 30px; border_radius: 15px; text_align: center; border: 2px solid {score_color};">
-                <p style="font-size: 20px; color: #5f6368; margin: 0;">Predicted Popularity Score</p>
-                <p style="font-size: 72px; font-weight: bold; color: {score_color}; margin: 10px 0;">
+            <div style="background-color: #000000; padding: 40px; border_radius: 20px; text_align: center; border: 3px solid #1DB954; box-shadow: 0 0 20px #1DB954;">
+                <p style="font-size: 18px; color: #B3B3B3; margin: 0; text-transform: uppercase; letter-spacing: 1px;">Predicted Popularity Score</p>
+                <p style="font-size: 80px; font-weight: bold; color: #FFFFFF; margin: 15px 0; text-shadow: 0 0 15px #FFFFFF;">
                     {predicted_popularity:.2f}
                 </p>
-                <p style="color: #5f6368; margin: 0;">out of 100</p>
-                <p style="font-size: 14px; color: #999; margin_top: 15px;">Model: {selected_model_name}</p>
+                <p style="color: #B3B3B3; margin: 0;">out of 100</p>
+                <p style="font-size: 12px; color: #888; margin_top: 20px; font-style: italic;">Powered by {selected_model_name} Model</p>
             </div>
             """, unsafe_allow_html=True)
             
         with col_recommend:
-            st.subheader("🎶 Recommended Similar Songs")
+            st.markdown("<h3 style='border-bottom: 2px solid #1DB954; padding-bottom: 10px;'>🎶 Recommended Similar Songs</h3>", unsafe_allow_html=True)
             
             if assets['df_raw'] is not None:
                 try:
@@ -120,11 +189,10 @@ if predict_btn:
                         'Popularity': recommendations['track_popularity'].tolist()
                     })
                     
-                    # ✨ บีบโค้ดเป็นบรรทัดเดียว ป้องกัน Streamlit มองเป็น Code Block ✨
-                    html_table = clean_recom.to_html(index=False, justify='center', border=0)
-                    html_code = f"<style>.custom-table {{ width: 100%; border-collapse: collapse; font-family: sans-serif; }} .custom-table th {{ background-color: #f0f2f6; padding: 12px; text-align: left; border-bottom: 2px solid #ddd; }} .custom-table td {{ padding: 10px; border-bottom: 1px solid #eee; }} .custom-table tr:hover {{ background-color: #f9f9f9; }}</style><div class='custom-table'>{html_table}</div>"
+                    # ✨ ใช้ HTML + CSS แต่งตารางให้ดูดีแบบ Spotify Pro ✨
+                    html_table = clean_recom.to_html(index=False, justify='left', border=0, classes='custom-table')
                     
-                    st.markdown(html_code, unsafe_allow_html=True)
+                    st.markdown(f"<div class='custom-table-container'>{html_table}</div>", unsafe_allow_html=True)
                     
                 except KeyError:
                     st.warning("⚠️ โชว์คะแนนได้ปกติ แต่ไม่สามารถแนะนำเพลงได้ (ไฟล์ข้อมูลไม่สมบูรณ์)")
