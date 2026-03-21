@@ -173,8 +173,12 @@ if predict_btn:
             st.markdown("<h3 style='border-bottom: 2px solid #1DB954; padding-bottom: 10px;'>🎶 Recommended Similar Songs</h3>", unsafe_allow_html=True)
             
             if assets['df_raw'] is not None:
-                try:
+                   try:
                     df_songs = assets['df_raw'].dropna(subset=feature_names)
+                    
+                    # ✨ โค้ดที่เพิ่มมาเพื่อปราบเพลงแฝด! ✨
+                    df_songs = df_songs.drop_duplicates(subset=['track_name', 'track_artist']).reset_index(drop=True)
+                    
                     raw_features = df_songs[feature_names].values
                     raw_features_scaled = assets['scaler'].transform(raw_features)
                     
