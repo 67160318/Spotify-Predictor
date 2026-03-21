@@ -7,7 +7,7 @@ import os
 # 1. ตั้งค่าหน้าเว็บแบบกว้างและใช้ Theme สีมืด
 st.set_page_config(page_title="Spotify Predictor Pro", layout="wide", page_icon="🎵", initial_sidebar_state="expanded")
 
-# --- CUSTOM CSS: แต่ง Theme 
+# --- CUSTOM CSS: แต่ง Theme และอ่านง่าย ---
 st.markdown("""
 <style>
     /* เปลี่ยนสีพื้นหลังหน้าเว็บและ Sidebar */
@@ -20,13 +20,33 @@ st.markdown("""
         border-right: 1px solid #282828;
     }
     
-    /* แต่งข้อความและหัวข้อ */
+    /* แต่งข้อความและหัวข้อทั่วไป */
     h1, h2, h3, .stMarkdown, .stText {
         color: #FFFFFF !important;
         font-family: 'Inter', sans-serif;
     }
     h1 {
         text-shadow: 0 0 10px #1DB954; /* Glow Title */
+    }
+
+    /* 🔥 แกปัญหาเรื่องสีในกล่องคำอธิบาย (Expander) ให้อ่านง่ายสุดๆ! 🔥 */
+    [data-testid="stExpander"] {
+        background-color: #181818 !important; /* พื้นหลังเข้ม */
+        border: 1px solid #282828;
+        border-radius: 10px;
+        box-shadow: 0 0 5px rgba(29, 185, 84, 0.3); /* Subtle green glow */
+    }
+    
+    /* บังคับสีข้อความในกล่องคำอธิบายให้เป็นสีขาวสว่าง อ่านง่าย */
+    [data-testid="stExpander"] p, [data-testid="stExpander"] li {
+        color: #FFFFFF !important;
+        font-size: 14px;
+    }
+    
+    /* บังคับสีข้อความหัวข้อในกล่องคำอธิบาย */
+    [data-testid="stExpander"] label {
+        color: #FFFFFF !important;
+        font-weight: bold !important;
     }
 
     /* แต่ง Slider และปุ่ม */
@@ -75,29 +95,7 @@ st.markdown("""
     }
 </style>
 """, unsafe_allow_html=True)
-# ==========================================
-# 4. ส่วนอธิบาย Features และ Disclaimer (เพิ่มคะแนนความโปร่งใสและ UX)
-# ==========================================
-with st.expander("ℹ️ คำอธิบายองค์ประกอบเสียง (Audio Features Explained)"):
-    st.markdown("""
-    * **Danceability (0.0 - 1.0):** ความเหมาะในการเต้น ยิ่งค่ามาก จังหวะยิ่งชัดเจนและเต้นตามได้ง่าย
-    * **Energy (0.0 - 1.0):** ความเร้าใจและพลังของเพลง ค่าที่สูงจะรู้สึกถึงความเร็ว ดัง และหนักหน่วง (เช่น เพลงร็อคหรือ EDM)
-    * **Loudness (dB):** ความดังเบาโดยรวมของเพลง (มักติดลบ) ยิ่งใกล้ 0 แปลว่ายิ่งดังมาก
-    * **Speechiness (0.0 - 1.0):** สัดส่วนของเสียงพูดในเพลง ค่าที่สูงมักจะเป็นเพลงแร็ป ทอล์คโชว์ หรือพอดแคสต์
-    * **Acousticness (0.0 - 1.0):** ความเป็นอคูสติก (ไม่ใช้เครื่องดนตรีไฟฟ้า) ยิ่งใกล้ 1 แปลว่าใช้เครื่องดนตรีสดสูง
-    * **Instrumentalness (0.0 - 1.0):** การไม่มีเสียงร้อง ยิ่งใกล้ 1 แปลว่าเป็นเพลงบรรเลงล้วนๆ
-    * **Liveness (0.0 - 1.0):** การแสดงสด ยิ่งค่าสูง แปลว่าเพลงนี้มีแนวโน้มถูกบันทึกเสียงจากการเล่นสด (มีเสียงคนดู)
-    * **Valence (0.0 - 1.0):** อารมณ์ความอารมณ์ดีของเพลง ค่าสูง = ร่าเริง/มีความสุข, ค่าต่ำ = เศร้า/หดหู่/โกรธ
-    * **Tempo (BPM):** ความเร็วของจังหวะเพลง (Beats Per Minute)
-    """)
 
-with st.expander("⚠️ ข้อสงวนสิทธิ์ (Disclaimer)"):
-    st.markdown("""
-    **หมายเหตุ:** แอปพลิเคชันนี้เป็นส่วนหนึ่งของโปรเจคการศึกษา (ML Deployment Project) 
-    คะแนนความนิยม (Popularity Score) ที่แสดงผลเกิดจากการทำนายของ Machine Learning Model 
-    ที่เรียนรู้จากชุดข้อมูลประวัติเพลงบน Spotify ในอดีตเท่านั้น ความนิยมของเพลงในโลกความเป็นจริง
-    อาจขึ้นอยู่กับปัจจัยอื่นๆ ที่โมเดลไม่ได้นำมาคำนวณ เช่น ฐานแฟนคลับของศิลปิน, การทำการตลาด, หรือกระแสไวรัลในโซเชียลมีเดีย
-    """)
 # ==========================================
 # 2. ฟังก์ชันโหลดข้อมูลและโมเดล
 # ==========================================
@@ -136,6 +134,22 @@ assets = load_assets()
 # ใช้ st.markdown กับ CSS ที่เราแต่งไว้
 st.markdown("<h1>🎵 Spotify Track Popularity Pro Predictor</h1>", unsafe_allow_html=True)
 st.markdown("<p style='color: #B3B3B3;'>ทำนายความนิยมของเพลงจากองค์ประกอบของเสียง และค้นหาเพลงที่มีลักษณะใกล้เคียงกัน</p>", unsafe_allow_html=True)
+
+# ==========================================
+# 4. ส่วนอธิบาย Features (เพิ่มคะแนนความโปร่งใสและ UX)
+# ==========================================
+with st.expander("ℹ️ คำอธิบายองค์ประกอบเสียง (Audio Features Explained)"):
+    st.markdown("""
+    * **Danceability (0.0 - 1.0):** ความเหมาะในการเต้น ยิ่งค่ามาก จังหวะยิ่งชัดเจนและเต้นตามได้ง่าย
+    * **Energy (0.0 - 1.0):** ความเร้าใจและพลังของเพลง ค่าที่สูงจะรู้สึกถึงความเร็ว ดัง และหนักหน่วง (เช่น เพลงร็อคหรือ EDM)
+    * **Loudness (dB):** ความดังเบาโดยรวมของเพลง (มักติดลบ) ยิ่งใกล้ 0 แปลว่ายิ่งดังมาก
+    * **Speechiness (0.0 - 1.0):** สัดส่วนของเสียงพูดในเพลง ค่าที่สูงมักจะเป็นเพลงแร็ป ทอล์คโชว์ หรือพอดแคสต์
+    * **Acousticness (0.0 - 1.0):** ความเป็นอคูสติก (ไม่ใช้เครื่องดนตรีไฟฟ้า) ยิ่งใกล้ 1 แปลว่าใช้เครื่องดนตรีสดสูง
+    * **Instrumentalness (0.0 - 1.0):** การไม่มีเสียงร้อง ยิ่งใกล้ 1 แปลว่าเป็นเพลงบรรเลงล้วนๆ
+    * **Liveness (0.0 - 1.0):** การแสดงสด ยิ่งค่าสูง แปลว่าเพลงนี้มีแนวโน้มถูกบันทึกเสียงจากการเล่นสด (มีเสียงคนดู)
+    * **Valence (0.0 - 1.0):** อารมณ์ความอารมณ์ดีของเพลง ค่าสูง = ร่าเริง/มีความสุข, ค่าต่ำ = เศร้า/หดหู่/โกรธ
+    * **Tempo (BPM):** ความเร็วของจังหวะเพลง (Beats Per Minute)
+    """)
 
 st.sidebar.markdown("<h2 style='color: #1DB954;'>🕹️ Features & Settings</h2>", unsafe_allow_html=True)
 
@@ -198,7 +212,7 @@ if predict_btn:
                 try:
                     df_songs = assets['df_raw'].dropna(subset=feature_names)
                     
-                    # ✨ โค้ดที่เพิ่มมาเพื่อปราบเพลงแฝด! ✨
+                    # ✨ โค้ดปราบเพลงแฝด (drop duplicates) ก็ยังมีอยู่นะจ๊ะ! ✨
                     df_songs = df_songs.drop_duplicates(subset=['track_name', 'track_artist']).reset_index(drop=True)
                     
                     raw_features = df_songs[feature_names].values
@@ -215,10 +229,12 @@ if predict_btn:
                         'Popularity': recommendations['track_popularity'].tolist()
                     })
                     
-                    # ✨ ใช้ HTML + CSS แต่งตารางให้ดูดีแบบ Spotify Pro ✨
+                    # ✨ ใช้ HTML + CSS แต่งตารางให้ดูดีแบบ Spotify Pro อ่านง่าย 100% ✨
                     html_table = clean_recom.to_html(index=False, justify='left', border=0, classes='custom-table')
+                    # ✨ บีบโค้ดเป็นบรรทัดเดียว ป้องกัน Streamlit มองเป็น Code Block ✨
+                    html_code = f"<div class='custom-table-container'>{html_table}</div>"
                     
-                    st.markdown(f"<div class='custom-table-container'>{html_table}</div>", unsafe_allow_html=True)
+                    st.markdown(html_code, unsafe_allow_html=True)
                     
                 except KeyError:
                     st.warning("⚠️ โชว์คะแนนได้ปกติ แต่ไม่สามารถแนะนำเพลงได้ (ไฟล์ข้อมูลไม่สมบูรณ์)")
